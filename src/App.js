@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Figure from './components/Figure';
 import WrongLetters from './components/WrongLetters';
 import Word from './components/Word';
 import Popup from './components/Popup';
 import Notification from './components/Notification';
+import { showNotification as show } from './helpers/helpers';
 
 import './App.css';
 
@@ -21,6 +22,7 @@ function App() {
   const [playable, setPlayable] = useState(true);
   const [correctLetters, setCorrectLetters] = useState([]);
   const [wrongLetters, setWrongLetters] = useState([]);
+  const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
     const handleKeydown = event => {
@@ -53,16 +55,28 @@ function App() {
 
   }, [correctLetters, wrongLetters, playable]);
 
+  function playAgain(){
+    setPlayable(true);
+
+    // Empty Arrays
+    setCorrectLetters([]);
+    setWrongLetters([]);
+
+    const random = Math.floor(Math.random() * words.length);
+    selectedWord = words[random];
+  }
+
   return (
     <>
       <Header />
       <div className="game-container">
-        <Figure />
-        <WrongLetters />
+        <Figure wrongLetters={wrongLetters}/>
+        <WrongLetters wrongLetters={ wrongLetters}/>
         <Word selectedWord={selectedWord} correctLetters={correctLetters} />
-        <Popup />
-        <Notification />
       </div>
+      <Popup correctLetters={correctLetters} wrongLetters={wrongLetters} selectedWord={selectedWord}
+        setPlayable={setPlayable} playAgain={playAgain}/>
+      <Notification showNotification={showNotification}/>
     </>
   );
 }
