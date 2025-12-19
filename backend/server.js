@@ -8,6 +8,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const wordRoutes = require('./routes/wordRoutes');
 const connectDB = require('./config/database'); // We will build this next
 require('dotenv').config();
 
@@ -35,5 +36,8 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
+
+// 6. Middleware api
+app.use('/api/words', wordRoutes);
