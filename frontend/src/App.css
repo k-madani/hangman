@@ -1,131 +1,113 @@
-* {
-    box-sizing: border-box;
+:root {
+  --neon: #61dafb;
+  --dark: #0a0b0d;
+  --card: #15171c;
+  --white: #ffffff;
 }
 
-body,
-#root {
-    background-color: #34495e;
-    color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 80vh;
-    margin: 0;
-    overflow: hidden;
+body, html {
+  margin: 0;
+  padding: 0;
+  background-color: var(--dark);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
 }
 
-h1 {
-    margin: 20px 0 0;
+/* Full Screen Centering */
+.App, .full-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
 }
 
-.game-container {
-    padding: 20px 30px;
-    position: relative;
-    margin: auto;
-    height: 350px;
-    width: 450px;
+/* Setup Card & Choices */
+.setup-card {
+  background: var(--card);
+  padding: 40px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+  border: 1px solid #333;
 }
 
-.figure-container {
-    fill: transparent;
-    stroke: #fff;
-    stroke-width: 4px;
-    stroke-linecap: round;
+.mode-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0;
+  background: var(--neon);
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px;
 }
 
-.figure-part {
-    display: none;
+.mode-btn.outline {
+  background: transparent;
+  border: 2px solid var(--neon);
+  color: var(--neon);
 }
 
-.wrong-letters-container {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    text-align: right;
+/* Category Grid Layout */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
 }
 
-.wrong-letters-container p {
-    margin: 0 0 5px;
+.cat-card {
+  background: #1e2128;
+  padding: 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: 0.3s;
 }
 
-.wrong-letters-container span {
-    font-size: 24px;
+.cat-card.active {
+  border-color: var(--neon);
+  background: rgba(97, 218, 251, 0.1);
 }
 
-.word {
-    display: flex;
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+.cat-icon { font-size: 2rem; display: block; margin-bottom: 10px; }
+
+/* Utility Styles */
+.primary-btn {
+  background: var(--neon);
+  color: #000;
+  padding: 15px 30px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
-.letter {
-    border-bottom: 3px solid #2980b9;
-    display: inline-flex;
-    font-size: 30px;
-    align-items: center;
-    justify-content: center;
-    margin: 0 3px;
-    height: 50px;
-    width: 20px;
+.primary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.game-input {
+  width: 100%;
+  padding: 12px;
+  background: #000;
+  border: 1px solid #444;
+  color: white;
+  margin: 15px 0;
+  box-sizing: border-box;
 }
 
-.popup-container {
-    background-color: rgba(0, 0, 0, 0.3);
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    /* display: flex; */
-    display: none;
-    align-items: center;
-    justify-content: center;
+.setup-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
 }
 
-.popup {
-    background: #2980b9;
-    border-radius: 5px;
-    box-shadow: 0 15px 10px 3px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    text-align: center;
-}
-
-.popup button {
-    cursor: pointer;
-    background-color: #fff;
-    color: #2980b9;
-    border: 0;
-    margin-top: 20px;
-    padding: 12px 20px;
-    font-size: 16px;
-}
-
-.popup button:active {
-    transform: scale(0.98);
-}
-
-.popup button:focus {
-    outline: 0;
-}
-
-.notification-container {
-    background-color: rgba(0, 0, 0, 0.3);
-    border-radius: 10px 10px 0 0;
-    padding: 15px 20px;
-    position: absolute;
-    bottom: -50px;
-    transition: transform 0.3s ease-in-out;
-}
-
-.notification-container p {
-    margin: 0;
-}
-
-.notification-container.show {
-    transform: translateY(-50px);
+.back-link {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
 }

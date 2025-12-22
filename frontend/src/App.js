@@ -1,79 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
-import Figure from './components/Figure';
-import WrongLetters from './components/WrongLetters';
-import Word from './components/Word';
-import Popup from './components/Popup';
-import Notification from './components/Notification';
-import { showNotification as show } from './helpers/helpers';
-
+import { socket } from './socket';
+import Dashboard from './components/Dashboard';
+import Lobby from './components/Lobby';
+import SinglePlayerSetup from './components/SinglePlayerSetup';
 import './App.css';
 
-const words = ['application', 'hello', 'wizard'];
-
-let selectedWord = words[Math.floor(Math.random() * words.length)];
-
 function App() {
-  const [playable, setPlayable] = useState(true);
-  const [correctLetters, setCorrectLetters] = useState([]);
-  const [wrongLetters, setWrongLetters] = useState([]);
-  const [showNotification, setShowNotification] = useState(false);
+    const [view, setView] = useState('INTRO');
+    const [gameMode, setGameMode] = useState(null); 
+    const [gameState, setGameState] = useState(null);
 
-  useEffect(() => {
-    const handleKeydown = event => {
-      // fetch letter from event
-      const { key, keyCode } = event;
+    useEffect(() => {
+        socket.on('gameUpdate', (data) => {
+            setGameState(data);
+            if (view !== 'GAME' && data.phase !== 'WAITING_FOR_PLAYERS') {
+                setView('GAME');
+            }
+        });
+        return () => socket.off('gameUpdate');
+    }, [view]);
 
-      // check if it is a letter key 
-      if (playable && keyCode >= 65 && keyCode <= 90) {
-        const letter = key.toLowerCase();
-        if (selectedWord.includes(letter)) {
-          // if correct letter does not include letter
-          if (!correctLetters.includes(letter)) {
-            setCorrectLetters(currentLetters => [...currentLetters, letter]);
-          } else {
-            show(setShowNotification);
-          }
-        } else {
-          // if wrong letters does not include letter
-          if (!wrongLetters.includes(letter)) {
-            setWrongLetters(currentLetters => [...currentLetters, letter]);
-          } else {
-            show(setShowNotification);
-          }
+    const startSingleGame = async (category, rounds) => {
+        try {
+            // Updated fetch to use your category selection
+            const response = await fetch(`http://localhost:5000/api/words/random?category=${category}`);
+            const data = await response.json();
+            
+            setGameState({
+                phase: 'GUESSING',
+                currentRound: 1,
+                maxRounds: rounds,
+                displayWord: Array(data.word.length).fill(""),
+                hint: data.hint,
+                wrongLetters: [],
+                correctLetters: [],
+                scores: { p1: 0, p2: 0 },
+                targetWord: data.word.toLowerCase()
+            });
+            setView('GAME');
+        } catch (err) {
+            console.error("Solo game error:", err);
+            alert("Error fetching word. Make sure backend is running!");
         }
-      }
-    }
-    window.addEventListener('keydown', handleKeydown);
+    };
 
-    return () => window.removeEventListener('keydown', handleKeydown);
+    return (
+        <div className="App">
+            {view === 'INTRO' && <Dashboard onStart={() => setView('MODE_SELECT')} />}
 
-  }, [correctLetters, wrongLetters, playable]);
+            {view === 'MODE_SELECT' && (
+                <div className="full-center">
+                    <h1 className="logo-text">WORD ARENA</h1>
+                    <div className="mode-cards">
+                        <div className="m-card" onClick={() => {setGameMode('single'); setView('SETUP');}}>
+                            <h2>SINGLE PLAYER</h2>
+                            <p>VS CPU</p>
+                        </div>
+                        <div className="m-card" onClick={() => {setGameMode('multi'); setView('SETUP');}}>
+                            <h2>MULTIPLAYER</h2>
+                            <p>VS FRIEND</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-  function playAgain(){
-    setPlayable(true);
+            {view === 'SETUP' && (
+                <div className="full-center">
+                    {gameMode === 'multi' ? (
+                        <Lobby onJoin={(r, rd) => { socket.connect(); socket.emit('joinRoom', {roomId: r, maxRounds: rd}); }} />
+                    ) : (
+                        <SinglePlayerSetup onStart={startSingleGame} />
+                    )}
+                </div>
+            )}
 
-    // Empty Arrays
-    setCorrectLetters([]);
-    setWrongLetters([]);
-
-    const random = Math.floor(Math.random() * words.length);
-    selectedWord = words[random];
-  }
-
-  return (
-    <>
-      <Header />
-      <div className="game-container">
-        <Figure wrongLetters={wrongLetters}/>
-        <WrongLetters wrongLetters={ wrongLetters}/>
-        <Word selectedWord={selectedWord} correctLetters={correctLetters} />
-      </div>
-      <Popup correctLetters={correctLetters} wrongLetters={wrongLetters} selectedWord={selectedWord}
-        setPlayable={setPlayable} playAgain={playAgain}/>
-      <Notification showNotification={showNotification}/>
-    </>
-  );
+            {view === 'GAME' && gameState && (
+                <div className="game-arena">
+                    {/* Game UI continues here */}
+                    <h2>Category: {gameState.hint ? "Solo Battle" : "PvP Challenge"}</h2>
+                    <div className="word-box">
+                        {gameState.displayWord.map((l, i) => <span key={i} className="letter-line">{l || '_'}</span>)}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default App;
