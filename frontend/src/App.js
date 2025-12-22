@@ -1,48 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { socket } from './socket';
-import Dashboard from './components/Dashboard';
-import Lobby from './components/Lobby';
-import SinglePlayerSetup from './components/SinglePlayerSetup';
+import Dashboard from './Dashboard';
+import Lobby from './Lobby';
+import SinglePlayerSetup from './SinglePlayerSetup';
+import Figure from './Figure'; // Classic hangman figure
+import WrongLetters from './WrongLetters';
+import Word from './Word';
+import Popup from './Popup';
+import Notification from './Notification';
 import './App.css';
 
 function App() {
     const [view, setView] = useState('INTRO');
     const [gameMode, setGameMode] = useState(null); 
     const [gameState, setGameState] = useState(null);
+    const [playable, setPlayable] = useState(true);
 
-    useEffect(() => {
-        socket.on('gameUpdate', (data) => {
-            setGameState(data);
-            if (view !== 'GAME' && data.phase !== 'WAITING_FOR_PLAYERS') {
-                setView('GAME');
-            }
-        });
-        return () => socket.off('gameUpdate');
-    }, [view]);
-
-    const startSingleGame = async (category, rounds) => {
-        try {
-            // Updated fetch to use your category selection
-            const response = await fetch(`http://localhost:5000/api/words/random?category=${category}`);
-            const data = await response.json();
-            
-            setGameState({
-                phase: 'GUESSING',
-                currentRound: 1,
-                maxRounds: rounds,
-                displayWord: Array(data.word.length).fill(""),
-                hint: data.hint,
-                wrongLetters: [],
-                correctLetters: [],
-                scores: { p1: 0, p2: 0 },
-                targetWord: data.word.toLowerCase()
-            });
-            setView('GAME');
-        } catch (err) {
-            console.error("Solo game error:", err);
-            alert("Error fetching word. Make sure backend is running!");
+    // This handles the "Hangman" logic for Solo Mode
+    const handleKeydown = (event) => {
+        const { key, keyCode } = event;
+        if (view === 'GAME' && playable && keyCode >= 65 && keyCode <= 90) {
+            const letter = key.toLowerCase();
+            // Logic to update gameState.correctLetters or wrongLetters would go here
         }
     };
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeydown);
+        return () => window.removeEventListener('keydown', handleKeydown);
+    }, [view, playable]);
 
     return (
         <div className="App">
@@ -50,15 +36,15 @@ function App() {
 
             {view === 'MODE_SELECT' && (
                 <div className="full-center">
-                    <h1 className="logo-text">WORD ARENA</h1>
-                    <div className="mode-cards">
-                        <div className="m-card" onClick={() => {setGameMode('single'); setView('SETUP');}}>
-                            <h2>SINGLE PLAYER</h2>
-                            <p>VS CPU</p>
+                    <h1 className="arena-logo">WORD ARENA</h1>
+                    <div className="mode-selection-grid">
+                        <div className="mode-card" onClick={() => {setGameMode('single'); setView('SETUP');}}>
+                            <h2>SOLO CHALLENGE</h2>
+                            <p>Test your wits against the Arena</p>
                         </div>
-                        <div className="m-card" onClick={() => {setGameMode('multi'); setView('SETUP');}}>
-                            <h2>MULTIPLAYER</h2>
-                            <p>VS FRIEND</p>
+                        <div className="mode-card" onClick={() => {setGameMode('multi'); setView('SETUP');}}>
+                            <h2>PVP BATTLE</h2>
+                            <p>Duel a friend in real-time</p>
                         </div>
                     </div>
                 </div>
@@ -66,21 +52,19 @@ function App() {
 
             {view === 'SETUP' && (
                 <div className="full-center">
-                    {gameMode === 'multi' ? (
-                        <Lobby onJoin={(r, rd) => { socket.connect(); socket.emit('joinRoom', {roomId: r, maxRounds: rd}); }} />
-                    ) : (
-                        <SinglePlayerSetup onStart={startSingleGame} />
-                    )}
+                    {gameMode === 'multi' ? <Lobby onJoin={() => {}} /> : <SinglePlayerSetup onStart={() => setView('GAME')} />}
                 </div>
             )}
 
-            {view === 'GAME' && gameState && (
-                <div className="game-arena">
-                    {/* Game UI continues here */}
-                    <h2>Category: {gameState.hint ? "Solo Battle" : "PvP Challenge"}</h2>
-                    <div className="word-box">
-                        {gameState.displayWord.map((l, i) => <span key={i} className="letter-line">{l || '_'}</span>)}
+            {view === 'GAME' && (
+                <div className="game-container">
+                    <h2 className="game-heading">WORD ARENA: {gameMode.toUpperCase()}</h2>
+                    <div className="game-content">
+                        <Figure wrongLetters={[]} /> {/* The Hangman element */}
+                        <WrongLetters wrongLetters={[]} />
+                        <Word selectedWord="ARENA" correctLetters={['a', 'r']} />
                     </div>
+                    {/* Popups and Notifications here */}
                 </div>
             )}
         </div>

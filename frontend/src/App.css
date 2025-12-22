@@ -1,71 +1,47 @@
+/* Word Arena - Pro Theme */
 :root {
   --neon: #61dafb;
-  --dark: #0a0b0d;
-  --card: #15171c;
-  --white: #ffffff;
+  --danger: #ff4757;
+  --bg: #0a0b0d;
+  --surface: #15171c;
 }
 
-body, html {
-  margin: 0;
-  padding: 0;
-  background-color: var(--dark);
-  color: var(--white);
-  font-family: 'Inter', sans-serif;
-}
-
-/* Full Screen Centering */
-.App, .full-center {
+.mode-selection-grid {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+  gap: 30px;
+  padding: 20px;
 }
 
-/* Setup Card & Choices */
-.setup-card {
-  background: var(--card);
+.mode-card {
+  background: var(--surface);
+  border: 1px solid #333;
   padding: 40px;
   border-radius: 20px;
-  width: 90%;
-  max-width: 600px;
-  text-align: center;
-  border: 1px solid #333;
-}
-
-.mode-btn {
-  display: block;
-  width: 100%;
-  padding: 15px;
-  margin: 10px 0;
-  background: var(--neon);
-  border: none;
-  font-weight: bold;
   cursor: pointer;
-  border-radius: 8px;
+  transition: 0.3s;
+  text-align: center;
+  width: 250px;
 }
 
-.mode-btn.outline {
-  background: transparent;
-  border: 2px solid var(--neon);
-  color: var(--neon);
+.mode-card:hover {
+  border-color: var(--neon);
+  transform: translateY(-10px);
+  box-shadow: 0 10px 30px rgba(97, 218, 251, 0.2);
 }
 
-/* Category Grid Layout */
+/* Fix for the Category Grid in Setup */
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 15px;
-  margin: 20px 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
 }
 
 .cat-card {
   background: #1e2128;
-  padding: 20px;
-  border-radius: 12px;
-  cursor: pointer;
+  padding: 25px;
+  border-radius: 15px;
   border: 2px solid transparent;
-  transition: 0.3s;
 }
 
 .cat-card.active {
@@ -73,41 +49,10 @@ body, html {
   background: rgba(97, 218, 251, 0.1);
 }
 
-.cat-icon { font-size: 2rem; display: block; margin-bottom: 10px; }
-
-/* Utility Styles */
-.primary-btn {
-  background: var(--neon);
-  color: #000;
-  padding: 15px 30px;
-  font-weight: 800;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-.primary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.game-input {
-  width: 100%;
-  padding: 12px;
-  background: #000;
-  border: 1px solid #444;
-  color: white;
-  margin: 15px 0;
-  box-sizing: border-box;
-}
-
-.setup-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 30px;
-}
-
-.back-link {
-  background: none;
-  border: none;
-  color: #888;
-  cursor: pointer;
+/* Hangman Figure Styling */
+.figure-container {
+  fill: transparent;
+  stroke: #fff;
+  stroke-width: 4px;
+  stroke-linecap: round;
 }
