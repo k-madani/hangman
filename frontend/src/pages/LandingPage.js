@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Dashboard = ({ onStart }) => {
+const LandingPage = ({ onStart }) => {
     return (
         <div className="dashboard-layout">
             {/* LEFT SIDE: The Teaser */}
@@ -30,4 +30,4 @@ const Dashboard = ({ onStart }) => {
     );
 };
 
-export default Dashboard;
+export default LandingPage;

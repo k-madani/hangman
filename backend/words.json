@@ -1,0 +1,482 @@
+[
+  {
+    "text": "javascript",
+    "hint": "Programming language of the web",
+    "category": "Technology",
+    "difficulty": "medium"
+  },
+  {
+    "text": "python",
+    "hint": "Snake-named programming language",
+    "category": "Technology",
+    "difficulty": "easy"
+  },
+  {
+    "text": "database",
+    "hint": "Organized collection of data",
+    "category": "Technology",
+    "difficulty": "medium"
+  },
+  {
+    "text": "algorithm",
+    "hint": "Step-by-step problem-solving procedure",
+    "category": "Technology",
+    "difficulty": "hard"
+  },
+  {
+    "text": "cloud",
+    "hint": "Remote data storage",
+    "category": "Technology",
+    "difficulty": "easy"
+  },
+  {
+    "text": "blockchain",
+    "hint": "Decentralized ledger technology",
+    "category": "Technology",
+    "difficulty": "hard"
+  },
+  {
+    "text": "server",
+    "hint": "Computer that provides services to other computers",
+    "category": "Technology",
+    "difficulty": "medium"
+  },
+  {
+    "text": "encryption",
+    "hint": "Converting data to secure code",
+    "category": "Technology",
+    "difficulty": "hard"
+  },
+  {
+    "text": "router",
+    "hint": "Device that directs network traffic",
+    "category": "Technology",
+    "difficulty": "medium"
+  },
+  {
+    "text": "smartphone",
+    "hint": "Portable computing device with touchscreen",
+    "category": "Technology",
+    "difficulty": "easy"
+  },
+  {
+    "text": "avatar",
+    "hint": "Highest-grossing film of all time",
+    "category": "Movies",
+    "difficulty": "easy"
+  },
+  {
+    "text": "inception",
+    "hint": "Dreams within dreams movie",
+    "category": "Movies",
+    "difficulty": "medium"
+  },
+  {
+    "text": "titanic",
+    "hint": "Sinking ship romance",
+    "category": "Movies",
+    "difficulty": "easy"
+  },
+  {
+    "text": "joker",
+    "hint": "Batman villain origin story",
+    "category": "Movies",
+    "difficulty": "easy"
+  },
+  {
+    "text": "interstellar",
+    "hint": "Space travel through wormhole",
+    "category": "Movies",
+    "difficulty": "medium"
+  },
+  {
+    "text": "gladiator",
+    "hint": "Roman warrior fights for freedom",
+    "category": "Movies",
+    "difficulty": "medium"
+  },
+  {
+    "text": "matrix",
+    "hint": "Reality is a simulation",
+    "category": "Movies",
+    "difficulty": "easy"
+  },
+  {
+    "text": "forrest",
+    "hint": "Life is like a box of chocolates",
+    "category": "Movies",
+    "difficulty": "easy"
+  },
+  {
+    "text": "shawshank",
+    "hint": "Prison escape drama",
+    "category": "Movies",
+    "difficulty": "medium"
+  },
+  {
+    "text": "pulp",
+    "hint": "Quentin Tarantino crime film",
+    "category": "Movies",
+    "difficulty": "medium"
+  },
+  {
+    "text": "france",
+    "hint": "Country of the Eiffel Tower",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "japan",
+    "hint": "Land of the rising sun",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "brazil",
+    "hint": "Largest country in South America",
+    "category": "Countries",
+    "difficulty": "medium"
+  },
+  {
+    "text": "egypt",
+    "hint": "Home of the pyramids",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "australia",
+    "hint": "Continent and country",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "canada",
+    "hint": "Country famous for maple syrup",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "india",
+    "hint": "Country of the Taj Mahal",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "germany",
+    "hint": "European country famous for engineering",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "mexico",
+    "hint": "Country south of the United States",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "italy",
+    "hint": "Boot-shaped European country",
+    "category": "Countries",
+    "difficulty": "easy"
+  },
+  {
+    "text": "elephant",
+    "hint": "Largest land animal",
+    "category": "Animals",
+    "difficulty": "easy"
+  },
+  {
+    "text": "penguin",
+    "hint": "Flightless bird of Antarctica",
+    "category": "Animals",
+    "difficulty": "easy"
+  },
+  {
+    "text": "dolphin",
+    "hint": "Intelligent marine mammal",
+    "category": "Animals",
+    "difficulty": "easy"
+  },
+  {
+    "text": "chameleon",
+    "hint": "Color-changing reptile",
+    "category": "Animals",
+    "difficulty": "medium"
+  },
+  {
+    "text": "kangaroo",
+    "hint": "Hopping marsupial from Australia",
+    "category": "Animals",
+    "difficulty": "easy"
+  },
+  {
+    "text": "giraffe",
+    "hint": "Tallest land animal",
+    "category": "Animals",
+    "difficulty": "easy"
+  },
+  {
+    "text": "octopus",
+    "hint": "Eight-armed sea creature",
+    "category": "Animals",
+    "difficulty": "medium"
+  },
+  {
+    "text": "cheetah",
+    "hint": "Fastest land animal",
+    "category": "Animals",
+    "difficulty": "easy"
+  },
+  {
+    "text": "zebra",
+    "hint": "Black and white striped horse",
+    "category": "Animals",
+    "difficulty": "easy"
+  },
+  {
+    "text": "koala",
+    "hint": "Australian eucalyptus-eating marsupial",
+    "category": "Animals",
+    "difficulty": "easy"
+  },
+  {
+    "text": "gravity",
+    "hint": "Force that pulls objects down",
+    "category": "Science",
+    "difficulty": "easy"
+  },
+  {
+    "text": "photosynthesis",
+    "hint": "How plants make food from sunlight",
+    "category": "Science",
+    "difficulty": "hard"
+  },
+  {
+    "text": "atom",
+    "hint": "Smallest unit of matter",
+    "category": "Science",
+    "difficulty": "medium"
+  },
+  {
+    "text": "oxygen",
+    "hint": "Gas we breathe to live",
+    "category": "Science",
+    "difficulty": "easy"
+  },
+  {
+    "text": "evolution",
+    "hint": "Darwin's theory of species change",
+    "category": "Science",
+    "difficulty": "medium"
+  },
+  {
+    "text": "molecule",
+    "hint": "Group of atoms bonded together",
+    "category": "Science",
+    "difficulty": "medium"
+  },
+  {
+    "text": "electron",
+    "hint": "Negatively charged particle",
+    "category": "Science",
+    "difficulty": "hard"
+  },
+  {
+    "text": "ecosystem",
+    "hint": "Community of living organisms",
+    "category": "Science",
+    "difficulty": "medium"
+  },
+  {
+    "text": "chromosome",
+    "hint": "DNA structure carrying genes",
+    "category": "Science",
+    "difficulty": "hard"
+  },
+  {
+    "text": "velocity",
+    "hint": "Speed in a specific direction",
+    "category": "Science",
+    "difficulty": "medium"
+  },
+  {
+    "text": "basketball",
+    "hint": "Sport with hoops and dribbling",
+    "category": "Sports",
+    "difficulty": "easy"
+  },
+  {
+    "text": "football",
+    "hint": "Most popular sport worldwide",
+    "category": "Sports",
+    "difficulty": "easy"
+  },
+  {
+    "text": "tennis",
+    "hint": "Racket sport with a net",
+    "category": "Sports",
+    "difficulty": "easy"
+  },
+  {
+    "text": "marathon",
+    "hint": "Long-distance running race",
+    "category": "Sports",
+    "difficulty": "medium"
+  },
+  {
+    "text": "cricket",
+    "hint": "Bat and ball sport popular in India",
+    "category": "Sports",
+    "difficulty": "medium"
+  },
+  {
+    "text": "volleyball",
+    "hint": "Sport played with a net and spiking",
+    "category": "Sports",
+    "difficulty": "easy"
+  },
+  {
+    "text": "swimming",
+    "hint": "Water sport in pools or ocean",
+    "category": "Sports",
+    "difficulty": "easy"
+  },
+  {
+    "text": "boxing",
+    "hint": "Combat sport with gloves",
+    "category": "Sports",
+    "difficulty": "easy"
+  },
+  {
+    "text": "gymnastics",
+    "hint": "Sport involving flips and balance",
+    "category": "Sports",
+    "difficulty": "medium"
+  },
+  {
+    "text": "baseball",
+    "hint": "American sport with bat and bases",
+    "category": "Sports",
+    "difficulty": "easy"
+  },
+  {
+    "text": "pizza",
+    "hint": "Italian dish with cheese and toppings",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "sushi",
+    "hint": "Japanese rice and raw fish dish",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "burger",
+    "hint": "Sandwich with a meat patty",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "pasta",
+    "hint": "Italian noodles in various shapes",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "chocolate",
+    "hint": "Sweet treat made from cocoa",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "taco",
+    "hint": "Mexican tortilla with fillings",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "curry",
+    "hint": "Spicy Indian dish",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "croissant",
+    "hint": "French buttery pastry",
+    "category": "Food",
+    "difficulty": "medium"
+  },
+  {
+    "text": "pancake",
+    "hint": "Flat breakfast cake with syrup",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "sandwich",
+    "hint": "Food between two slices of bread",
+    "category": "Food",
+    "difficulty": "easy"
+  },
+  {
+    "text": "guitar",
+    "hint": "Six-string instrument",
+    "category": "Music",
+    "difficulty": "easy"
+  },
+  {
+    "text": "piano",
+    "hint": "Keyboard instrument with black and white keys",
+    "category": "Music",
+    "difficulty": "easy"
+  },
+  {
+    "text": "jazz",
+    "hint": "Improvisational music genre",
+    "category": "Music",
+    "difficulty": "medium"
+  },
+  {
+    "text": "symphony",
+    "hint": "Large orchestral composition",
+    "category": "Music",
+    "difficulty": "medium"
+  },
+  {
+    "text": "drums",
+    "hint": "Percussion instrument you hit",
+    "category": "Music",
+    "difficulty": "easy"
+  },
+  {
+    "text": "violin",
+    "hint": "String instrument played with a bow",
+    "category": "Music",
+    "difficulty": "easy"
+  },
+  {
+    "text": "trumpet",
+    "hint": "Brass instrument with valves",
+    "category": "Music",
+    "difficulty": "easy"
+  },
+  {
+    "text": "opera",
+    "hint": "Theatrical performance with singing",
+    "category": "Music",
+    "difficulty": "medium"
+  },
+  {
+    "text": "saxophone",
+    "hint": "Jazzy woodwind instrument",
+    "category": "Music",
+    "difficulty": "medium"
+  },
+  {
+    "text": "concert",
+    "hint": "Live musical performance",
+    "category": "Music",
+    "difficulty": "easy"
+  }
+]

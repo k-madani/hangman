@@ -7,13 +7,14 @@ module.exports = (io, socket) => {
     // 1. JOIN ROOM & INITIALIZE ROUNDS
     socket.on('joinRoom', ({ roomId, maxRounds }) => {
         socket.join(roomId);
+        console.log(`Player ${socket.id} joined room ${roomId}`);
 
         if (!rooms.has(roomId)) {
             rooms.set(roomId, {
                 players: [], 
-                maxRounds: Math.min(Math.max(maxRounds, 1), 10), // Limit 1-10 rounds
+                maxRounds: Math.min(Math.max(maxRounds, 1), 10),
                 currentRound: 1,
-                turnIndex: 0, // 0 = Player 1 sets, 1 = Player 2 sets
+                turnIndex: 0,
                 phase: 'WAITING_FOR_PLAYERS',
                 word: '',
                 hint: '',
@@ -34,6 +35,7 @@ module.exports = (io, socket) => {
         // Start the game once 2 players are in
         if (game.players.length === 2 && game.phase === 'WAITING_FOR_PLAYERS') {
             game.phase = 'SETTING_WORD';
+            game.status = 'playing';
         }
 
         io.to(roomId).emit('gameUpdate', getMaskedState(game));
@@ -50,7 +52,11 @@ module.exports = (io, socket) => {
         game.word = word.toLowerCase().trim();
         game.hint = hint || "No hint provided";
         game.phase = 'GUESSING';
+        game.correctLetters = [];
+        game.wrongLetters = [];
+        game.status = 'playing';
         
+        console.log(`Word set in room ${roomId}: ${game.word}`);
         io.to(roomId).emit('gameUpdate', getMaskedState(game));
     });
 
@@ -63,11 +69,18 @@ module.exports = (io, socket) => {
         const guesserIndex = game.turnIndex === 0 ? 1 : 0;
         if (socket.id !== game.players[guesserIndex]) return;
 
-        const char = letter.toLowerCase();
+        const char = letter.toLowerCase().trim();
+        
+        // Check if letter already guessed
+        if (game.correctLetters.includes(char) || game.wrongLetters.includes(char)) {
+            io.to(roomId).emit('error', 'Letter already guessed!');
+            return;
+        }
+
         if (game.word.includes(char)) {
-            if (!game.correctLetters.includes(char)) game.correctLetters.push(char);
+            game.correctLetters.push(char);
         } else {
-            if (!game.wrongLetters.includes(char)) game.wrongLetters.push(char);
+            game.wrongLetters.push(char);
         }
 
         // Check Win/Loss conditions
@@ -86,7 +99,13 @@ module.exports = (io, socket) => {
     // 4. DISCONNECT
     socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.id}`);
-        // Optional: Handle room cleanup if players leave
+        // Clean up empty rooms
+        for (const [roomId, game] of rooms.entries()) {
+            game.players = game.players.filter(p => p !== socket.id);
+            if (game.players.length === 0) {
+                rooms.delete(roomId);
+            }
+        }
     });
 };
 
@@ -95,7 +114,7 @@ module.exports = (io, socket) => {
 function handleRoundEnd(roomId, io) {
     const game = rooms.get(roomId);
     
-    // Update scores (turnIndex 0 means P1 set, P2 guessed)
+    // Update scores
     if (game.status === 'win') {
         game.turnIndex === 0 ? game.scores.p2++ : game.scores.p1++;
     } else {
@@ -105,6 +124,7 @@ function handleRoundEnd(roomId, io) {
     // Check if total match is over
     if (game.currentRound >= game.maxRounds) {
         game.phase = 'GAME_OVER';
+        console.log(`Game over in room ${roomId}. Scores: P1=${game.scores.p1}, P2=${game.scores.p2}`);
     } else {
         // Prepare next round: Swap Roles
         game.currentRound++;
@@ -114,6 +134,7 @@ function handleRoundEnd(roomId, io) {
         game.correctLetters = [];
         game.wrongLetters = [];
         game.status = 'playing';
+        console.log(`Round ${game.currentRound} starting in room ${roomId}`);
     }
 
     io.to(roomId).emit('gameUpdate', getMaskedState(game));
@@ -123,8 +144,7 @@ function handleRoundEnd(roomId, io) {
 function getMaskedState(game) {
     return {
         ...game,
-        displayWord: game.word.split('').map(l => game.correctLetters.includes(l) ? l : ''),
-        // Only reveal the actual word if the round is lost or game is over
+        displayWord: game.word.split('').map(l => game.correctLetters.includes(l) ? l : '_'),
         actualWord: (game.status === 'lose' || game.phase === 'GAME_OVER') ? game.word : null
     };
 }

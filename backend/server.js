@@ -9,7 +9,8 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const wordRoutes = require('./routes/wordRoutes');
-const connectDB = require('./config/database'); // We will build this next
+const socketController = require('./controllers/socketController');
+const connectDB = require('./config/database');
 require('dotenv').config();
 
 const app = express();
@@ -18,8 +19,8 @@ const app = express();
 connectDB();
 
 // 2. Middleware
-app.use(cors());        // Allows your React app to talk to this server
-app.use(express.json()); // Allows the server to read JSON sent in API requests
+app.use(cors());
+app.use(express.json());
 
 // 3. Create the HTTP Server
 const server = http.createServer(app);
@@ -27,18 +28,28 @@ const server = http.createServer(app);
 // 4. Initialize Socket.io
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000", // Your React URL
+        origin: "http://localhost:3000",
         methods: ["GET", "POST"],
         credentials: true
     }
 });
 
-// 5. Port Configuration
+// 5. API Routes (register before server listens)
+app.use('/api/words', wordRoutes);
+
+// 6. Socket.io Connection Handler
+io.on('connection', (socket) => {
+    console.log(`New client connected: ${socket.id}`);
+    socketController(io, socket);
+    
+    socket.on('disconnect', () => {
+        console.log(`Client disconnected: ${socket.id}`);
+    });
+});
+
+// 7. Port Configuration
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-// 6. Middleware api
-app.use('/api/words', wordRoutes);
