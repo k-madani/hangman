@@ -261,7 +261,8 @@ function AppContent() {
 
             <Routes>
                 <Route path="/" element={
-                    <LandingPage onStart={() => navigate('/mode-select')} />
+                    <LandingPage onStart={() => navigate('/mode-select')} onSignIn={() => setShowAuth(true)} />
+                    
                 } />
 
                 <Route path="/mode-select" element={
