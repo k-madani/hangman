@@ -25,7 +25,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, var(--bg) 0%, #1a2442 50%, #16213e 100%);
@@ -45,46 +46,96 @@ html, body {
 
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes popIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes glow {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.4)); }
-  50% { filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.7)); }
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.7));
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { 
+
+  0%,
+  100% {
     transform: translate(-50%, -50%) scale(1);
     box-shadow: 0 0 25px rgba(124, 58, 237, 0.5);
   }
-  50% { 
+
+  50% {
     transform: translate(-50%, -50%) scale(1.1);
     box-shadow: 0 0 40px rgba(124, 58, 237, 0.8);
   }
@@ -102,7 +153,8 @@ html, body {
   padding: 20px;
 }
 
-.teaser-side, .content-side {
+.teaser-side,
+.content-side {
   flex: 1;
   min-width: 280px;
 }
@@ -135,12 +187,29 @@ html, body {
   animation: bounce 2s ease-in-out infinite;
 }
 
-.preview-word span:nth-child(1) { animation-delay: 0s; }
-.preview-word span:nth-child(2) { animation-delay: 0.1s; }
-.preview-word span:nth-child(3) { animation-delay: 0.2s; }
-.preview-word span:nth-child(4) { animation-delay: 0.3s; }
-.preview-word span:nth-child(5) { animation-delay: 0.4s; }
-.preview-word span:nth-child(6) { animation-delay: 0.5s; }
+.preview-word span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.preview-word span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.preview-word span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.preview-word span:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.preview-word span:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.preview-word span:nth-child(6) {
+  animation-delay: 0.5s;
+}
 
 .underscore {
   color: var(--secondary);
@@ -331,13 +400,12 @@ html, body {
   width: 2px;
   height: 60vh;
   max-height: 500px;
-  background: linear-gradient(to bottom, 
-    transparent 0%, 
-    var(--primary) 15%, 
-    var(--secondary) 50%, 
-    var(--accent) 85%, 
-    transparent 100%
-  );
+  background: linear-gradient(to bottom,
+      transparent 0%,
+      var(--primary) 15%,
+      var(--secondary) 50%,
+      var(--accent) 85%,
+      transparent 100%);
   position: relative;
   flex-shrink: 0;
   box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
@@ -990,7 +1058,8 @@ html, body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.cat-card:hover, .cat-card.active {
+.cat-card:hover,
+.cat-card.active {
   border-color: var(--primary);
   background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
   transform: translateY(-4px) scale(1.02);
@@ -1203,13 +1272,12 @@ html, body {
   .mode-divider {
     width: 50%;
     height: 2px;
-    background: linear-gradient(to right, 
-      transparent 0%, 
-      var(--primary) 15%, 
-      var(--secondary) 50%, 
-      var(--accent) 85%, 
-      transparent 100%
-    );
+    background: linear-gradient(to right,
+        transparent 0%,
+        var(--primary) 15%,
+        var(--secondary) 50%,
+        var(--accent) 85%,
+        transparent 100%);
   }
 
   .game-info-panel {
@@ -1284,7 +1352,9 @@ html, body {
 }
 
 @media (max-width: 480px) {
-  .corner-logo, .game-corner-logo {
+
+  .corner-logo,
+  .game-corner-logo {
     font-size: 0.9rem;
     top: 15px;
     left: 15px;
@@ -1322,7 +1392,8 @@ html, body {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, var(--bg) 0%, #1a2442 50%, #16213e 100%);
@@ -1342,46 +1413,96 @@ html, body {
 
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes popIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes glow {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.4)); }
-  50% { filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.7)); }
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.7));
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { 
+
+  0%,
+  100% {
     transform: translate(-50%, -50%) scale(1);
     box-shadow: 0 0 25px rgba(124, 58, 237, 0.5);
   }
-  50% { 
+
+  50% {
     transform: translate(-50%, -50%) scale(1.1);
     box-shadow: 0 0 40px rgba(124, 58, 237, 0.8);
   }
@@ -1399,7 +1520,8 @@ html, body {
   padding: 20px;
 }
 
-.teaser-side, .content-side {
+.teaser-side,
+.content-side {
   flex: 1;
   min-width: 280px;
 }
@@ -1432,12 +1554,29 @@ html, body {
   animation: bounce 2s ease-in-out infinite;
 }
 
-.preview-word span:nth-child(1) { animation-delay: 0s; }
-.preview-word span:nth-child(2) { animation-delay: 0.1s; }
-.preview-word span:nth-child(3) { animation-delay: 0.2s; }
-.preview-word span:nth-child(4) { animation-delay: 0.3s; }
-.preview-word span:nth-child(5) { animation-delay: 0.4s; }
-.preview-word span:nth-child(6) { animation-delay: 0.5s; }
+.preview-word span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.preview-word span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.preview-word span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.preview-word span:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.preview-word span:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.preview-word span:nth-child(6) {
+  animation-delay: 0.5s;
+}
 
 .underscore {
   color: var(--secondary);
@@ -1628,13 +1767,12 @@ html, body {
   width: 2px;
   height: 60vh;
   max-height: 500px;
-  background: linear-gradient(to bottom, 
-    transparent 0%, 
-    var(--primary) 15%, 
-    var(--secondary) 50%, 
-    var(--accent) 85%, 
-    transparent 100%
-  );
+  background: linear-gradient(to bottom,
+      transparent 0%,
+      var(--primary) 15%,
+      var(--secondary) 50%,
+      var(--accent) 85%,
+      transparent 100%);
   position: relative;
   flex-shrink: 0;
   box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
@@ -2229,7 +2367,8 @@ html, body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.cat-card:hover, .cat-card.active {
+.cat-card:hover,
+.cat-card.active {
   border-color: var(--primary);
   background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
   transform: translateY(-4px) scale(1.02);
@@ -2526,7 +2665,9 @@ html, body {
 }
 
 @media (max-width: 480px) {
-  .corner-logo, .game-corner-logo {
+
+  .corner-logo,
+  .game-corner-logo {
     font-size: 0.9rem;
     top: 15px;
     left: 15px;
@@ -2542,5 +2683,69 @@ html, body {
 
   .category-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* ── Add these rules to your existing App.css ─────────────────── */
+
+  /* Global user widget — fixed top-right, visible on all pages */
+  .global-user-widget {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(13, 13, 15, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 6px 14px;
+    backdrop-filter: blur(6px);
+  }
+
+  .user-widget-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.04em;
+  }
+
+  .user-widget-stats {
+    font-size: 11px;
+    color: #00ffc8;
+    font-family: 'Courier New', monospace;
+  }
+
+  .user-widget-logout {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .user-widget-logout:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+  }
+
+  .user-widget-login {
+    background: #00ffc8;
+    border: none;
+    color: #000;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 14px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .user-widget-login:hover {
+    background: #fff;
   }
 }

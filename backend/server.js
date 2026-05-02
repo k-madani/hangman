@@ -1,16 +1,13 @@
-/**
- * Importing Dependencies: Bringing in the tools we need (Express, Socket.io, Mongoose)
- * Middleware Setup: Configuring how the server handles data (like JSON or CORS)
- * Connecting to the Database: Bringing your MongoDB Atlas cluster online
- * Listening: Opening a "Port" so the frontend can talk to it
- */
-const express = require('express');
-const http = require('http');
+const express    = require('express');
+const http       = require('http');
 const { Server } = require('socket.io');
-const cors = require('cors');
-const wordRoutes = require('./routes/wordRoutes');
+const cors       = require('cors');
+const cookieParser = require('cookie-parser');
+const wordRoutes   = require('./routes/wordRoutes');
+const authRoutes   = require('./routes/authRoutes');
 const socketController = require('./controllers/socketController');
-const connectDB = require('./config/database');
+const connectDB    = require('./config/database');
+const { startCronJob } = require('./jobs/cronJob');
 require('dotenv').config();
 
 const app = express();
@@ -19,37 +16,44 @@ const app = express();
 connectDB();
 
 // 2. Middleware
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true  // Required for cookies to be sent cross-origin
+}));
 app.use(express.json());
+app.use(cookieParser()); // Parses httpOnly refresh token cookie
 
-// 3. Create the HTTP Server
+// 3. HTTP Server
 const server = http.createServer(app);
 
-// 4. Initialize Socket.io
+// 4. Socket.io
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
-        methods: ["GET", "POST"],
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST'],
         credentials: true
     }
 });
 
-// 5. API Routes (register before server listens)
+// 5. REST Routes
 app.use('/api/words', wordRoutes);
+app.use('/api/auth',  authRoutes);
 
-// 6. Socket.io Connection Handler
+// 6. Socket.io Connections
 io.on('connection', (socket) => {
     console.log(`New client connected: ${socket.id}`);
     socketController(io, socket);
-    
+
     socket.on('disconnect', () => {
         console.log(`Client disconnected: ${socket.id}`);
     });
 });
 
-// 7. Port Configuration
-const PORT = process.env.PORT || 5000;
+// 7. Cron Job
+startCronJob();
 
+// 8. Start Server
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`✅ Server running on port ${PORT}`);
 });

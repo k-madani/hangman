@@ -4,7 +4,7 @@ const WordSchema = new mongoose.Schema({
     text: {
         type: String,
         required: [true, 'Please add a word'],
-        unique: true, // Prevents duplicate words in your game
+        unique: true,
         lowercase: true,
         trim: true
     },
@@ -14,13 +14,17 @@ const WordSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        required: [true, 'Please specify a category (e.g., Tech, Animals)'],
+        required: [true, 'Please specify a category'],
         default: 'General'
     },
     difficulty: {
         type: String,
-        enum: ['easy', 'medium', 'hard'], // Only allows these three values
+        enum: ['easy', 'medium', 'hard'],
         default: 'medium'
+    },
+    isAIGenerated: {
+        type: Boolean,
+        default: false
     },
     createdAt: {
         type: Date,

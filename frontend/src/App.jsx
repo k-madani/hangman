@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { socket } from './socket';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import ModeSelectPage from './pages/ModeSelectPage';
 import GamePage from './pages/GamePage';
 import ScoreboardPage from './pages/ScoreboardPage';
+import AuthPage from './pages/AuthPage';
 import Notification from './components/Notification';
 import './App.css';
 
 function AppContent() {
     const navigate = useNavigate();
+    const { user, logout, loading } = useAuth();
 
     const [gameMode, setGameMode] = useState(null);
     const [roomId, setRoomId] = useState('');
@@ -17,6 +20,7 @@ function AppContent() {
     const [finalScores, setFinalScores] = useState({ p1: 0, p2: 0 });
     const [showNotif, setShowNotif] = useState(false);
     const [playable, setPlayable] = useState(true);
+    const [showAuth, setShowAuth] = useState(false);
 
     const [gameState, setGameState] = useState({
         word: '',
@@ -68,63 +72,43 @@ function AppContent() {
 
     // ── MULTIPLAYER ───────────────────────────────────────────────
 
-    // P1: Creates the room and waits for a code
     const handleCreateRoom = (rounds) => {
         setGameMode('multi');
         setJoinError('');
         socket.connect();
-        // Store rounds in state immediately so GamePage can show them during the waiting screen
         setGameState(prev => ({ ...prev, rounds, phase: 'WAITING_FOR_PLAYERS' }));
         socket.emit('createRoom', { maxRounds: rounds });
         navigate('/game');
     };
 
-    // P2: Joins with a room code only
     const handleJoinRoom = (roomCode) => {
         setGameMode('multi');
         setJoinError('');
         socket.connect();
         socket.emit('joinRoom', { roomCode });
-        // Don't navigate yet — wait for matchStarting or joinError
     };
 
     // ── SOCKET LISTENERS ─────────────────────────────────────────
 
     useEffect(() => {
-        // P1 receives their generated room code
         socket.on('roomCreated', ({ roomCode, maxRounds }) => {
-            console.log('Room created:', roomCode);
             setRoomId(roomCode);
-            setGameState(prev => ({
-                ...prev,
-                rounds: maxRounds,
-                phase: 'WAITING_FOR_PLAYERS'
-            }));
+            setGameState(prev => ({ ...prev, rounds: maxRounds, phase: 'WAITING_FOR_PLAYERS' }));
         });
 
-        // Both players receive this when P2 joins — triggers match starting screen
         socket.on('matchStarting', ({ roomCode, maxRounds }) => {
-            console.log('Match starting in room:', roomCode);
             setRoomId(roomCode);
-            setGameState(prev => ({
-                ...prev,
-                rounds: maxRounds,
-                phase: 'MATCH_STARTING'
-            }));
+            setGameState(prev => ({ ...prev, rounds: maxRounds, phase: 'MATCH_STARTING' }));
             navigate('/game');
         });
 
-        // P2 gets this if the room code is wrong/full/in-progress
         socket.on('joinError', (message) => {
-            console.error('Join error:', message);
             setJoinError(message);
             socket.disconnect();
             setGameMode(null);
         });
 
-        // Live game state from backend
         socket.on('gameUpdate', (game) => {
-            console.log('Game update:', game);
             setGameState(prev => ({
                 ...prev,
                 correctLetters: game.correctLetters || [],
@@ -203,7 +187,6 @@ function AppContent() {
                 fetchNextWord(gameState.category, gameState.currentRound + 1, newScore);
             }
         }
-        // Multiplayer: backend drives all transitions — intentional no-op here
     };
 
     const fetchNextWord = async (category, nextRound, currentScore) => {
@@ -225,7 +208,7 @@ function AppContent() {
         }
     };
 
-    // ── NAVIGATION HELPERS ────────────────────────────────────────
+    // ── HELPERS ───────────────────────────────────────────────────
 
     const triggerNotif = () => {
         setShowNotif(true);
@@ -244,22 +227,38 @@ function AppContent() {
         });
     };
 
-    const handlePlayAgain = () => {
-        socket.disconnect();
-        resetState();
-        navigate('/mode-select');
-    };
+    const handlePlayAgain = () => { socket.disconnect(); resetState(); navigate('/mode-select'); };
+    const handleBackToMenu = () => { socket.disconnect(); resetState(); navigate('/'); };
 
-    const handleBackToMenu = () => {
-        socket.disconnect();
-        resetState();
-        navigate('/');
-    };
-
-    // ── ROUTES ────────────────────────────────────────────────────
+    // Wait for session restore before rendering to avoid flash
+    if (loading) return null;
 
     return (
         <div className="App">
+            {/* Global user widget — top right on all pages */}
+            <div className="global-user-widget">
+                {user ? (
+                    <>
+                        <span className="user-widget-name">👤 {user.username}</span>
+                        <span className="user-widget-stats">
+                            {user.stats.wins}W · {user.stats.losses}L
+                        </span>
+                        <button className="user-widget-logout" onClick={logout}>Sign Out</button>
+                    </>
+                ) : (
+                    <button className="user-widget-login" onClick={() => setShowAuth(true)}>
+                        Sign In
+                    </button>
+                )}
+            </div>
+
+            {showAuth && (
+                <AuthPage
+                    onSuccess={() => setShowAuth(false)}
+                    onBack={() => setShowAuth(false)}
+                />
+            )}
+
             <Routes>
                 <Route path="/" element={
                     <LandingPage onStart={() => navigate('/mode-select')} />
@@ -268,10 +267,7 @@ function AppContent() {
                 <Route path="/mode-select" element={
                     <ModeSelectPage
                         onSelectMode={(mode, options) => {
-                            if (mode === 'single') {
-                                startSingleGame(options.category, options.rounds);
-                            }
-                            // Multiplayer is handled directly by onCreateRoom/onJoinRoom
+                            if (mode === 'single') startSingleGame(options.category, options.rounds);
                         }}
                         onCreateRoom={handleCreateRoom}
                         onJoinRoom={handleJoinRoom}
@@ -313,7 +309,9 @@ function AppContent() {
 function App() {
     return (
         <Router>
-            <AppContent />
+            <AuthProvider>
+                <AppContent />
+            </AuthProvider>
         </Router>
     );
 }
