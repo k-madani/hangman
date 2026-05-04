@@ -38,10 +38,11 @@ const GamePage = ({
 
     const handleGuessKey = useCallback((e) => {
         const { key, keyCode } = e;
-        if (playable && gameState.phase === 'GUESSING' && keyCode >= 65 && keyCode <= 90) {
+        // Only guesser can type — block setter from guessing their own word
+        if (playable && gameState.phase === 'GUESSING' && !isMyTurnToSet && keyCode >= 65 && keyCode <= 90) {
             onGuessLetter(key.toLowerCase());
         }
-    }, [playable, gameState.phase, onGuessLetter]);
+    }, [playable, gameState.phase, isMyTurnToSet, onGuessLetter]);
 
     useEffect(() => {
         window.addEventListener('keydown', handleGuessKey);
@@ -54,10 +55,12 @@ const GamePage = ({
         setTimeout(() => setCodeCopied(false), 2000);
     };
 
+    // Setter always sees full hint. Guesser gets progressive reveal.
     const getProgressiveHint = () => {
         const wrongCount = gameState.wrongLetters.length;
         const hint = gameState.hint || '';
         if (!hint || hint.trim() === '' || hint === 'No hint provided') return null;
+        if (isMyTurnToSet) return hint; // setter always sees full hint
         if (wrongCount < 2) return null;
         if (wrongCount < 4) return hint.substring(0, Math.ceil(hint.length * 0.3)) + '...';
         if (wrongCount < 6) return hint.substring(0, Math.ceil(hint.length * 0.7)) + '...';
@@ -131,12 +134,20 @@ const GamePage = ({
         );
     }
 
-    // ── ROLE BANNER (shown during active guessing) ────────────────
+    // ── ROLE BANNER ───────────────────────────────────────────────
     const getRoleBanner = () => {
         if (gameMode !== 'multi' || gameState.phase !== 'GUESSING') return null;
-        return isMyTurnToSet
-            ? <div className="role-banner setter-banner">👀 You set this word — watch your opponent guess</div>
-            : <div className="role-banner guesser-banner">🎯 Your turn — guess the word!</div>;
+        if (isMyTurnToSet) {
+            return (
+                <div className="role-banner setter-banner">
+                    👀 You set: <strong>{gameState.actualWord?.toUpperCase()}</strong>
+                    {gameState.hint && (
+                        <span className="setter-hint"> · Hint: {gameState.hint}</span>
+                    )}
+                </div>
+            );
+        }
+        return <div className="role-banner guesser-banner">🎯 Your turn — guess the word!</div>;
     };
 
     // ── MAIN GAME BOARD ───────────────────────────────────────────
@@ -181,7 +192,7 @@ const GamePage = ({
                     currentHint ? (
                         <div className="info-item hint-item">
                             <span className="info-label">
-                                💡 Hint {wrongCount < 4 ? '(Partial)' : wrongCount < 6 ? '(More)' : '(Full)'}
+                                💡 Hint {isMyTurnToSet ? '(Full)' : wrongCount < 4 ? '(Partial)' : wrongCount < 6 ? '(More)' : '(Full)'}
                             </span>
                             <span className="info-hint-text">{currentHint}</span>
                         </div>

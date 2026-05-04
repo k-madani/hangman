@@ -1,7 +1,6 @@
 const rooms = new Map();
 
 function generateRoomCode() {
-    // Unambiguous characters only (no 0/O, 1/I)
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
     for (let i = 0; i < 6; i++) {
@@ -23,7 +22,8 @@ module.exports = (io, socket) => {
             players: [socket.id],
             maxRounds: Math.min(Math.max(maxRounds, 1), 20),
             currentRound: 1,
-            turnIndex: 0,
+            turnWithinRound: 0,   // 0 = first half, 1 = second half
+            turnIndex: 0,         // which player is the setter
             phase: 'WAITING_FOR_PLAYERS',
             word: '',
             hint: '',
@@ -64,14 +64,13 @@ module.exports = (io, socket) => {
         socket.join(code);
         console.log(`Player ${socket.id} joined room ${code}`);
 
-        // Both players see the "match starting" screen for 2.5s
         io.to(code).emit('matchStarting', { roomCode: code, maxRounds: game.maxRounds });
 
         setTimeout(() => {
             const g = rooms.get(code);
-            if (!g) return; // cleaned up during the delay
+            if (!g) return;
             g.phase = 'SETTING_WORD';
-            io.to(code).emit('gameUpdate', getMaskedState(g));
+            emitGameUpdate(io, g, code);
         }, 2500);
     });
 
@@ -89,7 +88,7 @@ module.exports = (io, socket) => {
         game.status = 'playing';
 
         console.log(`Word set in room ${roomCode}`);
-        io.to(roomCode).emit('gameUpdate', getMaskedState(game));
+        emitGameUpdate(io, game, roomCode);
     });
 
     // ── GUESS LETTER ─────────────────────────────────────────────
@@ -97,6 +96,7 @@ module.exports = (io, socket) => {
         const game = rooms.get(roomCode);
         if (!game || game.phase !== 'GUESSING') return;
 
+        // Only the guesser (non-setter) can guess
         const guesserIndex = game.turnIndex === 0 ? 1 : 0;
         if (socket.id !== game.players[guesserIndex]) return;
 
@@ -121,7 +121,7 @@ module.exports = (io, socket) => {
             game.status = 'lose';
             handleRoundEnd(roomCode, io);
         } else {
-            io.to(roomCode).emit('gameUpdate', getMaskedState(game));
+            emitGameUpdate(io, game, roomCode);
         }
     });
 
@@ -146,25 +146,26 @@ module.exports = (io, socket) => {
 function handleRoundEnd(roomCode, io) {
     const game = rooms.get(roomCode);
 
+    // Guesser wins → guesser scores. Guesser fails → setter scores.
     if (game.status === 'win') {
+        // guesserIndex scores
         game.turnIndex === 0 ? game.scores.p2++ : game.scores.p1++;
     } else {
+        // setterIndex scores
         game.turnIndex === 0 ? game.scores.p1++ : game.scores.p2++;
     }
 
-    // Emit result first so Popup fires on both clients with state intact
-    io.to(roomCode).emit('gameUpdate', getMaskedState(game));
+    // Reveal actual word to both players immediately
+    emitGameUpdate(io, game, roomCode, true);
 
-    // Transition after 3.5s (slightly longer than Popup's 3s countdown)
     setTimeout(() => {
         const g = rooms.get(roomCode);
         if (!g) return;
 
-        if (g.currentRound >= g.maxRounds) {
-            g.phase = 'GAME_OVER';
-            console.log(`Game over in ${roomCode}. P1=${g.scores.p1} P2=${g.scores.p2}`);
-        } else {
-            g.currentRound++;
+        if (g.turnWithinRound === 0) {
+            // ── First half done → flip roles for second half ──────
+            // e.g. P1 set → P2 guessed. Now P2 sets → P1 guesses.
+            g.turnWithinRound = 1;
             g.turnIndex = g.turnIndex === 0 ? 1 : 0;
             g.phase = 'SETTING_WORD';
             g.word = '';
@@ -172,11 +173,56 @@ function handleRoundEnd(roomCode, io) {
             g.correctLetters = [];
             g.wrongLetters = [];
             g.status = 'playing';
-            console.log(`Round ${g.currentRound} in ${roomCode}`);
+            console.log(`Room ${roomCode} — Round ${g.currentRound} second half`);
+        } else {
+            // ── Both halves done → full round complete ─────────────
+            g.turnWithinRound = 0;
+
+            if (g.currentRound >= g.maxRounds) {
+                g.phase = 'GAME_OVER';
+                console.log(`Game over in ${roomCode}. P1=${g.scores.p1} P2=${g.scores.p2}`);
+            } else {
+                g.currentRound++;
+                g.turnIndex = 0;  // P1 always starts as setter in a new round
+                g.phase = 'SETTING_WORD';
+                g.word = '';
+                g.hint = '';
+                g.correctLetters = [];
+                g.wrongLetters = [];
+                g.status = 'playing';
+                console.log(`Room ${roomCode} — Round ${g.currentRound} started`);
+            }
         }
 
-        io.to(roomCode).emit('gameUpdate', getMaskedState(g));
+        emitGameUpdate(io, g, roomCode);
     }, 3500);
+}
+
+// Emits different payloads per player:
+// - Setter always receives actualWord (they set it, they should see it)
+// - Guesser only receives actualWord on round end (revealAll = true)
+function emitGameUpdate(io, game, roomCode, revealAll = false) {
+    const base = getMaskedState(game);
+    const setterIndex  = game.turnIndex;
+    const guesserIndex = setterIndex === 0 ? 1 : 0;
+
+    // Setter: always knows their own word
+    const setterSocketId = game.players[setterIndex];
+    if (setterSocketId) {
+        io.to(setterSocketId).emit('gameUpdate', {
+            ...base,
+            actualWord: game.word
+        });
+    }
+
+    // Guesser: only sees word on reveal
+    const guesserSocketId = game.players[guesserIndex];
+    if (guesserSocketId) {
+        io.to(guesserSocketId).emit('gameUpdate', {
+            ...base,
+            actualWord: revealAll ? game.word : base.actualWord
+        });
+    }
 }
 
 function getMaskedState(game) {
@@ -184,6 +230,7 @@ function getMaskedState(game) {
     return {
         ...safeGame,
         displayWord: word.split('').map(l => game.correctLetters.includes(l) ? l : '_'),
+        // Only reveal in masked state if round just ended
         actualWord: (game.status === 'win' || game.status === 'lose' || game.phase === 'GAME_OVER')
             ? word : null,
         setterSocketId: game.players[game.turnIndex] || null,

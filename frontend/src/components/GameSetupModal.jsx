@@ -24,7 +24,7 @@ const GameSetupModal = ({ onSetWord, show }) => {
                     <div className="form-group">
                         <label>Secret Word *</label>
                         <input 
-                            type="password" 
+                            type="text"                  
                             className="game-input" 
                             placeholder="Enter secret word..." 
                             value={word}

@@ -82,14 +82,13 @@ const ModeSelectPage = ({ onSelectMode, onBack, onCreateRoom, onJoinRoom, joinEr
             <MultiplayerSetupModal
                 show={showMultiplayerModal}
                 onClose={() => setShowMultiplayerModal(false)}
-                onCreateRoom={(rounds) => {
-                    setShowMultiplayerModal(false);
-                    onCreateRoom(rounds);
-                }}
-                onJoinRoom={(roomCode) => {
-                    // Keep modal open — close happens automatically when App navigates on matchStarting,
-                    // or error displays in-modal on joinError
-                    onJoinRoom(roomCode);
+                onStart={(action, options) => {
+                    if (action === 'create') {
+                        setShowMultiplayerModal(false);
+                        onCreateRoom(options.rounds);
+                    } else if (action === 'join') {
+                        onJoinRoom(options.roomId);
+                    }
                 }}
                 joinError={joinError}
             />
