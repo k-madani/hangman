@@ -33,18 +33,30 @@ exports.getCategories = async (req, res) => {
 exports.getRandomWord = async (req, res) => {
     try {
         const { category } = req.query;
+        const DIFFICULTIES = ['easy', 'medium', 'hard', 'random'];
 
-        const words = await Word.find({ category: { $regex: new RegExp(category, 'i') } });
+        let words;
+
+        if (DIFFICULTIES.includes(category?.toLowerCase())) {
+            // Came from SinglePlayer difficulty picker
+            if (category === 'random') {
+                words = await Word.find({});
+            } else {
+                words = await Word.find({ difficulty: category.toLowerCase() });
+            }
+        } else {
+            // Came from category name (future use)
+            words = await Word.find({ category: { $regex: new RegExp(category, 'i') } });
+        }
 
         if (words.length === 0) {
-            return res.status(404).json({ message: "No words found for this category" });
+            return res.status(404).json({ message: `No words found for category "${category}"` });
         }
 
         const randomWord = words[Math.floor(Math.random() * words.length)];
-
         res.json(randomWord);
     } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
+        res.status(500).json({ message: 'Server Error', error });
     }
 };
 

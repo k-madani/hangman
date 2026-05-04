@@ -3,66 +3,51 @@ const rooms = new Map();
 function generateRoomCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
-    for (let i = 0; i < 6; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)];
-    }
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
     return code;
 }
 
 module.exports = (io, socket) => {
 
     // ── P1: CREATE ROOM ──────────────────────────────────────────
-    socket.on('createRoom', ({ maxRounds }) => {
+    socket.on('createRoom', ({ maxRounds, username }) => {
         let roomCode;
-        do {
-            roomCode = generateRoomCode();
-        } while (rooms.has(roomCode));
+        do { roomCode = generateRoomCode(); } while (rooms.has(roomCode));
 
         rooms.set(roomCode, {
-            players: [socket.id],
-            maxRounds: Math.min(Math.max(maxRounds, 1), 20),
-            currentRound: 1,
+            players:         [socket.id],
+            usernames:       [username || 'Player 1'],   // track usernames for stats
+            maxRounds:       Math.min(Math.max(maxRounds, 1), 20),
+            currentRound:    1,
             turnWithinRound: 0,   // 0 = first half, 1 = second half
-            turnIndex: 0,         // which player is the setter
-            phase: 'WAITING_FOR_PLAYERS',
-            word: '',
-            hint: '',
-            correctLetters: [],
-            wrongLetters: [],
-            status: 'playing',
-            scores: { p1: 0, p2: 0 }
+            turnIndex:       0,   // which player is the setter
+            phase:           'WAITING_FOR_PLAYERS',
+            word:            '',
+            hint:            '',
+            correctLetters:  [],
+            wrongLetters:    [],
+            status:          'playing',
+            scores:          { p1: 0, p2: 0 }
         });
 
         socket.join(roomCode);
-        console.log(`Room ${roomCode} created by ${socket.id}`);
-
-        socket.emit('roomCreated', {
-            roomCode,
-            maxRounds: rooms.get(roomCode).maxRounds
-        });
+        console.log(`Room ${roomCode} created by ${socket.id} (${username})`);
+        socket.emit('roomCreated', { roomCode, maxRounds: rooms.get(roomCode).maxRounds });
     });
 
     // ── P2: JOIN ROOM ────────────────────────────────────────────
-    socket.on('joinRoom', ({ roomCode }) => {
+    socket.on('joinRoom', ({ roomCode, username }) => {
         const code = roomCode.toUpperCase();
         const game = rooms.get(code);
 
-        if (!game) {
-            socket.emit('joinError', 'Room not found. Double-check the code.');
-            return;
-        }
-        if (game.players.length >= 2) {
-            socket.emit('joinError', 'Room is full.');
-            return;
-        }
-        if (game.phase !== 'WAITING_FOR_PLAYERS') {
-            socket.emit('joinError', 'Game already in progress.');
-            return;
-        }
+        if (!game)                              { socket.emit('joinError', 'Room not found. Double-check the code.'); return; }
+        if (game.players.length >= 2)           { socket.emit('joinError', 'Room is full.'); return; }
+        if (game.phase !== 'WAITING_FOR_PLAYERS') { socket.emit('joinError', 'Game already in progress.'); return; }
 
         game.players.push(socket.id);
+        game.usernames.push(username || 'Player 2');
         socket.join(code);
-        console.log(`Player ${socket.id} joined room ${code}`);
+        console.log(`${username} joined room ${code}`);
 
         io.to(code).emit('matchStarting', { roomCode: code, maxRounds: game.maxRounds });
 
@@ -80,12 +65,12 @@ module.exports = (io, socket) => {
         if (!game || game.phase !== 'SETTING_WORD') return;
         if (socket.id !== game.players[game.turnIndex]) return;
 
-        game.word = word.toLowerCase().trim();
-        game.hint = hint || '';
-        game.phase = 'GUESSING';
+        game.word           = word.toLowerCase().trim();
+        game.hint           = hint || '';
+        game.phase          = 'GUESSING';
         game.correctLetters = [];
-        game.wrongLetters = [];
-        game.status = 'playing';
+        game.wrongLetters   = [];
+        game.status         = 'playing';
 
         console.log(`Word set in room ${roomCode}`);
         emitGameUpdate(io, game, roomCode);
@@ -96,22 +81,17 @@ module.exports = (io, socket) => {
         const game = rooms.get(roomCode);
         if (!game || game.phase !== 'GUESSING') return;
 
-        // Only the guesser (non-setter) can guess
         const guesserIndex = game.turnIndex === 0 ? 1 : 0;
         if (socket.id !== game.players[guesserIndex]) return;
 
         const char = letter.toLowerCase().trim();
-
         if (game.correctLetters.includes(char) || game.wrongLetters.includes(char)) {
             socket.emit('error', 'Letter already guessed!');
             return;
         }
 
-        if (game.word.includes(char)) {
-            game.correctLetters.push(char);
-        } else {
-            game.wrongLetters.push(char);
-        }
+        if (game.word.includes(char)) game.correctLetters.push(char);
+        else                          game.wrongLetters.push(char);
 
         const isWin = game.word.split('').every(l => game.correctLetters.includes(l));
         if (isWin) {
@@ -148,14 +128,12 @@ function handleRoundEnd(roomCode, io) {
 
     // Guesser wins → guesser scores. Guesser fails → setter scores.
     if (game.status === 'win') {
-        // guesserIndex scores
         game.turnIndex === 0 ? game.scores.p2++ : game.scores.p1++;
     } else {
-        // setterIndex scores
         game.turnIndex === 0 ? game.scores.p1++ : game.scores.p2++;
     }
 
-    // Reveal actual word to both players immediately
+    // Reveal word to both on round end
     emitGameUpdate(io, game, roomCode, true);
 
     setTimeout(() => {
@@ -164,15 +142,14 @@ function handleRoundEnd(roomCode, io) {
 
         if (g.turnWithinRound === 0) {
             // ── First half done → flip roles for second half ──────
-            // e.g. P1 set → P2 guessed. Now P2 sets → P1 guesses.
             g.turnWithinRound = 1;
-            g.turnIndex = g.turnIndex === 0 ? 1 : 0;
-            g.phase = 'SETTING_WORD';
-            g.word = '';
-            g.hint = '';
-            g.correctLetters = [];
-            g.wrongLetters = [];
-            g.status = 'playing';
+            g.turnIndex       = g.turnIndex === 0 ? 1 : 0;
+            g.phase           = 'SETTING_WORD';
+            g.word            = '';
+            g.hint            = '';
+            g.correctLetters  = [];
+            g.wrongLetters    = [];
+            g.status          = 'playing';
             console.log(`Room ${roomCode} — Round ${g.currentRound} second half`);
         } else {
             // ── Both halves done → full round complete ─────────────
@@ -183,13 +160,13 @@ function handleRoundEnd(roomCode, io) {
                 console.log(`Game over in ${roomCode}. P1=${g.scores.p1} P2=${g.scores.p2}`);
             } else {
                 g.currentRound++;
-                g.turnIndex = 0;  // P1 always starts as setter in a new round
-                g.phase = 'SETTING_WORD';
-                g.word = '';
-                g.hint = '';
+                g.turnIndex      = 0;
+                g.phase          = 'SETTING_WORD';
+                g.word           = '';
+                g.hint           = '';
                 g.correctLetters = [];
-                g.wrongLetters = [];
-                g.status = 'playing';
+                g.wrongLetters   = [];
+                g.status         = 'playing';
                 console.log(`Room ${roomCode} — Round ${g.currentRound} started`);
             }
         }
@@ -198,29 +175,32 @@ function handleRoundEnd(roomCode, io) {
     }, 3500);
 }
 
-// Emits different payloads per player:
-// - Setter always receives actualWord (they set it, they should see it)
+// Sends different payloads per player:
+// - Setter always receives actualWord
 // - Guesser only receives actualWord on round end (revealAll = true)
+// - Each player receives the opponent's username for stats saving
 function emitGameUpdate(io, game, roomCode, revealAll = false) {
-    const base = getMaskedState(game);
-    const setterIndex  = game.turnIndex;
-    const guesserIndex = setterIndex === 0 ? 1 : 0;
+    const base          = getMaskedState(game);
+    const setterIndex   = game.turnIndex;
+    const guesserIndex  = setterIndex === 0 ? 1 : 0;
 
-    // Setter: always knows their own word
+    // Setter
     const setterSocketId = game.players[setterIndex];
     if (setterSocketId) {
         io.to(setterSocketId).emit('gameUpdate', {
             ...base,
-            actualWord: game.word
+            actualWord:       game.word,
+            opponentUsername: game.usernames[guesserIndex] || 'Player'
         });
     }
 
-    // Guesser: only sees word on reveal
+    // Guesser
     const guesserSocketId = game.players[guesserIndex];
     if (guesserSocketId) {
         io.to(guesserSocketId).emit('gameUpdate', {
             ...base,
-            actualWord: revealAll ? game.word : base.actualWord
+            actualWord:       revealAll ? game.word : base.actualWord,
+            opponentUsername: game.usernames[setterIndex] || 'Player'
         });
     }
 }
@@ -230,8 +210,7 @@ function getMaskedState(game) {
     return {
         ...safeGame,
         displayWord: word.split('').map(l => game.correctLetters.includes(l) ? l : '_'),
-        // Only reveal in masked state if round just ended
-        actualWord: (game.status === 'win' || game.status === 'lose' || game.phase === 'GAME_OVER')
+        actualWord:  (game.status === 'win' || game.status === 'lose' || game.phase === 'GAME_OVER')
             ? word : null,
         setterSocketId: game.players[game.turnIndex] || null,
     };

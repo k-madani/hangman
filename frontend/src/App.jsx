@@ -7,34 +7,40 @@ import ModeSelectPage from './pages/ModeSelectPage';
 import GamePage from './pages/GamePage';
 import ScoreboardPage from './pages/ScoreboardPage';
 import AuthPage from './pages/AuthPage';
+import ProfileModal from './components/ProfileModal';
+import Navbar from './components/Navbar';
 import Notification from './components/Notification';
 import './App.css';
 
 function AppContent() {
     const navigate = useNavigate();
-    const { user, logout, loading } = useAuth();
+    const { user, loading, authFetch, setUser } = useAuth();
 
-    const [gameMode, setGameMode] = useState(null);
-    const [roomId, setRoomId] = useState('');
-    const [joinError, setJoinError] = useState('');
+    const [gameMode, setGameMode]       = useState(null);
+    const [roomId, setRoomId]           = useState('');
+    const [joinError, setJoinError]     = useState('');
     const [finalScores, setFinalScores] = useState({ p1: 0, p2: 0 });
-    const [showNotif, setShowNotif] = useState(false);
-    const [playable, setPlayable] = useState(true);
-    const [showAuth, setShowAuth] = useState(false);
+    const [showNotif, setShowNotif]     = useState(false);
+    const [playable]                    = useState(true);
+    const [showAuth, setShowAuth]       = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
+
+    // Track opponent username for stats saving
+    const [opponentUsername, setOpponentUsername] = useState('');
 
     const [gameState, setGameState] = useState({
-        word: '',
-        hint: '',
+        word:          '',
+        hint:          '',
         correctLetters: [],
-        wrongLetters: [],
-        rounds: 0,
-        currentRound: 1,
-        phase: 'IDLE',
-        scores: { p1: 0, p2: 0 },
+        wrongLetters:  [],
+        rounds:        0,
+        currentRound:  1,
+        phase:         'IDLE',
+        scores:        { p1: 0, p2: 0 },
         setterSocketId: null,
-        actualWord: null,
-        status: 'playing',
-        category: ''
+        actualWord:    null,
+        status:        'playing',
+        category:      ''
     });
 
     // ── SINGLE PLAYER ─────────────────────────────────────────────
@@ -43,7 +49,6 @@ function AppContent() {
         try {
             const response = await fetch(`/api/words/random?category=${encodeURIComponent(category)}`);
             if (!response.ok) throw new Error(`No words found for category "${category}"`);
-
             const data = await response.json();
             if (!data || !data.text) throw new Error('Invalid response — no word received');
 
@@ -62,11 +67,51 @@ function AppContent() {
                 status: 'playing',
                 category
             });
-
             navigate('/game');
         } catch (err) {
             console.error(err);
             alert(`⚠️ ${err.message}\n\nMake sure the backend is running on port 5000!`);
+        }
+    };
+
+    // ── STATS SAVING ──────────────────────────────────────────────
+
+    const saveSingleResult = async (score, rounds, category) => {
+        if (!user) return;
+        try {
+            const res = await authFetch('http://localhost:5000/api/auth/save-single-result', {
+                method: 'POST',
+                body: JSON.stringify({ score, rounds, category })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                // Update user in context so widget reflects new stats immediately
+                if (data.user) setUser(data.user);
+            }
+        } catch (err) {
+            console.error('saveSingleResult error:', err.message);
+        }
+    };
+
+    const saveMultiResult = async (myScore, opponentScore, oppUsername, rounds, result) => {
+        if (!user) return;
+        try {
+            const res = await authFetch('http://localhost:5000/api/auth/save-multi-result', {
+                method: 'POST',
+                body: JSON.stringify({
+                    myScore,
+                    opponentScore,
+                    opponentUsername: oppUsername,
+                    rounds,
+                    result
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.user) setUser(data.user);
+            }
+        } catch (err) {
+            console.error('saveMultiResult error:', err.message);
         }
     };
 
@@ -77,7 +122,10 @@ function AppContent() {
         setJoinError('');
         socket.connect();
         setGameState(prev => ({ ...prev, rounds, phase: 'WAITING_FOR_PLAYERS' }));
-        socket.emit('createRoom', { maxRounds: rounds });
+        socket.emit('createRoom', {
+            maxRounds: rounds,
+            username: user?.username || 'Player 1'
+        });
         navigate('/game');
     };
 
@@ -85,7 +133,10 @@ function AppContent() {
         setGameMode('multi');
         setJoinError('');
         socket.connect();
-        socket.emit('joinRoom', { roomCode });
+        socket.emit('joinRoom', {
+            roomCode,
+            username: user?.username || 'Player 2'
+        });
     };
 
     // ── SOCKET LISTENERS ─────────────────────────────────────────
@@ -109,12 +160,15 @@ function AppContent() {
         });
 
         socket.on('gameUpdate', (game) => {
+            // Track opponent username whenever we receive it
+            if (game.opponentUsername) setOpponentUsername(game.opponentUsername);
+
             setGameState(prev => ({
                 ...prev,
                 correctLetters: game.correctLetters || [],
                 wrongLetters:   game.wrongLetters   || [],
-                word:           game.displayWord    ? game.displayWord.join('') : '',
-                hint:           game.hint           || '',
+                word:           game.displayWord ? game.displayWord.join('') : '',
+                hint:           game.hint        || '',
                 currentRound:   game.currentRound,
                 phase:          game.phase,
                 rounds:         game.maxRounds,
@@ -125,7 +179,20 @@ function AppContent() {
             }));
 
             if (game.phase === 'GAME_OVER') {
-                setFinalScores(game.scores);
+                const p1 = game.scores.p1;
+                const p2 = game.scores.p2;
+                setFinalScores({ p1, p2 });
+
+                // Save multiplayer result
+                // We need to know if current user is p1 or p2
+                // p1 = players[0] = whoever created the room
+                // We track this via socket.id vs setterSocketId at round 1
+                // Simpler: compare scores using opponentUsername we tracked
+                const myScore  = p1;  // frontend always tracks as p1 from their perspective
+                const oppScore = p2;
+                const result   = myScore > oppScore ? 'win' : myScore < oppScore ? 'loss' : 'tie';
+                saveMultiResult(myScore, oppScore, game.opponentUsername || opponentUsername, game.maxRounds, result);
+
                 navigate('/scoreboard');
             }
         });
@@ -147,7 +214,7 @@ function AppContent() {
             socket.off('error');
             socket.off('opponentDisconnected');
         };
-    }, []);
+    }, [opponentUsername]);
 
     // ── GAME ACTIONS ──────────────────────────────────────────────
 
@@ -173,14 +240,16 @@ function AppContent() {
 
     const handleRoundComplete = () => {
         if (gameMode === 'single') {
-            const won = gameState.word.split('').every(l => gameState.correctLetters.includes(l));
+            const won      = gameState.word.split('').every(l => gameState.correctLetters.includes(l));
             const newScore = won ? gameState.scores.p1 + 1 : gameState.scores.p1;
-
             setGameState(prev => ({ ...prev, scores: { ...prev.scores, p1: newScore } }));
 
             if (gameState.currentRound >= gameState.rounds) {
                 setTimeout(() => {
-                    setFinalScores({ p1: newScore, p2: 0 });
+                    const finalScore = { p1: newScore, p2: 0 };
+                    setFinalScores(finalScore);
+                    // Save single player result
+                    saveSingleResult(newScore, gameState.rounds, gameState.category);
                     navigate('/scoreboard');
                 }, 1500);
             } else {
@@ -195,13 +264,13 @@ function AppContent() {
             const data = await response.json();
             setGameState(prev => ({
                 ...prev,
-                word: data.text.toLowerCase(),
-                hint: data.hint || '',
+                word:           data.text.toLowerCase(),
+                hint:           data.hint || '',
                 correctLetters: [],
-                wrongLetters: [],
-                currentRound: nextRound,
-                phase: 'GUESSING',
-                scores: { ...prev.scores, p1: currentScore }
+                wrongLetters:   [],
+                currentRound:   nextRound,
+                phase:          'GUESSING',
+                scores:         { ...prev.scores, p1: currentScore }
             }));
         } catch (err) {
             console.error('fetchNextWord error:', err);
@@ -219,6 +288,7 @@ function AppContent() {
         setGameMode(null);
         setRoomId('');
         setJoinError('');
+        setOpponentUsername('');
         setGameState({
             word: '', hint: '', correctLetters: [], wrongLetters: [],
             rounds: 0, currentRound: 1, phase: 'IDLE',
@@ -227,30 +297,17 @@ function AppContent() {
         });
     };
 
-    const handlePlayAgain = () => { socket.disconnect(); resetState(); navigate('/mode-select'); };
+    const handlePlayAgain  = () => { socket.disconnect(); resetState(); navigate('/mode-select'); };
     const handleBackToMenu = () => { socket.disconnect(); resetState(); navigate('/'); };
 
-    // Wait for session restore before rendering to avoid flash
     if (loading) return null;
 
     return (
         <div className="App">
-            {/* Global user widget — top right on all pages */}
-            <div className="global-user-widget">
-                {user ? (
-                    <>
-                        <span className="user-widget-name">👤 {user.username}</span>
-                        <span className="user-widget-stats">
-                            {user.stats.wins}W · {user.stats.losses}L
-                        </span>
-                        <button className="user-widget-logout" onClick={logout}>Sign Out</button>
-                    </>
-                ) : (
-                    <button className="user-widget-login" onClick={() => setShowAuth(true)}>
-                        Sign In
-                    </button>
-                )}
-            </div>
+            <Navbar
+                onSignIn={() => setShowAuth(true)}
+                onOpenProfile={() => setShowProfile(true)}
+            />
 
             {showAuth && (
                 <AuthPage
@@ -259,10 +316,16 @@ function AppContent() {
                 />
             )}
 
+            {showProfile && (
+                <ProfileModal
+                    user={user}
+                    onClose={() => setShowProfile(false)}
+                />
+            )}
+
             <Routes>
                 <Route path="/" element={
-                    <LandingPage onStart={() => navigate('/mode-select')} onSignIn={() => setShowAuth(true)} />
-                    
+                    <LandingPage onStart={() => navigate('/mode-select')} />
                 } />
 
                 <Route path="/mode-select" element={
@@ -296,6 +359,7 @@ function AppContent() {
                     <ScoreboardPage
                         gameMode={gameMode}
                         finalScores={finalScores}
+                        userStats={user?.stats}
                         onPlayAgain={handlePlayAgain}
                         onBackToMenu={handleBackToMenu}
                     />

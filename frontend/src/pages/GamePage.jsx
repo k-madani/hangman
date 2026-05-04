@@ -192,7 +192,7 @@ const GamePage = ({
                     currentHint ? (
                         <div className="info-item hint-item">
                             <span className="info-label">
-                                💡 Hint {isMyTurnToSet ? '(Full)' : wrongCount < 4 ? '(Partial)' : wrongCount < 6 ? '(More)' : '(Full)'}
+                                💡 Hint {wrongCount < 4 ? '30%' : wrongCount < 6 ? '70%' : ''}
                             </span>
                             <span className="info-hint-text">{currentHint}</span>
                         </div>
